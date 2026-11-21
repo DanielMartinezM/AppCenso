@@ -1,0 +1,12 @@
+{
+  "appId": "com.censocarga.app",
+  "appName": "Censo de Carga",
+  "webDir": "www",
+  "backgroundColor": "#F3F6FB",
+  "server": {
+    "androidScheme": "https"
+  },
+  "android": {
+    "allowMixedContent": false
+  }
+}

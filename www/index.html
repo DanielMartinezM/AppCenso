@@ -1,0 +1,724 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#2342D6">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Censo de Carga">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icons/icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="icons/icon-192.png">
+<title>Censo de Carga</title>
+<style>
+:root{--p:#2342D6;--pd:#1B34A8;--amber:#F5A524;--bg:#F3F6FB;--ink:#17203A;--mut:#5B6577;--line:#E3E8F2;--in:#C9D2E3;--ok:#1B7F4B;--err:#B42318;--soft:#E9EEF8}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;height:100%;background:var(--bg)}
+body{font-family:system-ui,-apple-system,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;color:var(--ink);overscroll-behavior:none;-webkit-text-size-adjust:100%}
+button{font-family:inherit;cursor:pointer}
+#app{max-width:480px;height:100vh;height:100dvh;margin:0 auto;display:flex;flex-direction:column;position:relative;overflow:hidden;background:var(--bg)}
+.top{background:var(--p);color:#fff;padding:calc(18px + env(safe-area-inset-top)) 20px 16px;display:flex;gap:12px;align-items:center;flex:none}
+.logo{width:44px;height:44px;border-radius:14px;background:var(--amber);display:grid;place-items:center;flex:none}
+.top h1{margin:0;font-size:20px;line-height:1.1;font-weight:700}
+.top p{margin:2px 0 0;font-size:12.5px;color:#D5DDFF}
+main{flex:1;min-height:0;overflow-y:auto;padding:16px;display:flex;flex-direction:column;gap:14px;-webkit-overflow-scrolling:touch}
+.card{background:#fff;border:1px solid var(--line);border-radius:16px;padding:14px;display:flex;flex-direction:column;gap:12px;box-shadow:0 1px 2px rgba(16,24,40,.05)}
+.card.tint{background:#F7F9FD}
+.h2{display:flex;align-items:baseline;justify-content:space-between;padding:0 2px}
+.h2 b{font-size:17px}.h2 span{font-size:12.5px;color:var(--mut)}
+.f{display:flex;flex-direction:column;gap:6px;min-width:0}
+.lbl{font-size:11.5px;font-weight:600;color:var(--mut);letter-spacing:.02em}
+.inp{height:46px;width:100%;border:1px solid var(--in);border-radius:12px;padding:0 14px;font-size:16px;font-family:inherit;color:var(--ink);background:#fff}
+textarea.inp{height:auto;padding:12px 14px;resize:none;line-height:1.35}
+.inp:focus{outline:2px solid var(--p);outline-offset:1px}
+.inp.bad{border-color:var(--err)}
+.note{display:flex;align-items:center;gap:10px;background:var(--bg);border-radius:12px;padding:10px 12px;font-size:13px;color:var(--mut)}
+.ih{display:flex;align-items:center;gap:8px}
+.im{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px}
+.im b{font-size:15px}.im small{font-size:12.5px;color:var(--mut)}
+.pill{font-weight:700;font-size:12px;border-radius:999px;padding:5px 10px;white-space:nowrap}
+.v110{background:#E3EAFF;color:var(--pd)}.v220{background:#FFEBC2;color:#7A4200}
+.ib{width:44px;height:44px;border:none;background:transparent;border-radius:12px;display:grid;place-items:center;margin-right:-8px;color:var(--mut)}
+.ir{display:flex;gap:10px;align-items:flex-end}
+.ir .q{width:82px;flex:none}.ir .g{flex:1}
+.seg{display:flex;background:var(--soft);border-radius:12px;padding:3px;height:44px;flex:none}
+.seg button{border:none;border-radius:10px;padding:0 13px;font-size:13px;font-weight:600;background:transparent;color:#3C4764}
+.seg button.on{background:var(--p);color:#fff}
+.seg.wide{width:100%;height:46px}.seg.wide button{flex:1;font-size:14px}
+.st{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px;background:var(--bg);border-radius:12px;padding:10px 12px}
+.st div{display:flex;flex-direction:column;gap:1px}.st small{font-size:11px;color:var(--mut)}.st b{font-size:13.5px}
+.btn{height:52px;border:none;border-radius:14px;font-size:16px;font-weight:700;display:flex;align-items:center;justify-content:center;gap:8px;width:100%}
+.btn.p{background:var(--p);color:#fff}
+.btn.o{background:#fff;color:var(--p);border:1.5px solid var(--p);height:48px;font-size:15px}
+.btn.dash{background:#fff;color:var(--p);border:2px dashed #9DB0E8;font-size:15px;font-weight:600}
+.btn.sm{height:44px;font-size:13.5px;border-radius:12px;width:auto;padding:0 14px}
+.row{display:flex;justify-content:space-between;align-items:baseline;gap:12px}
+.row .k{font-size:13px;color:var(--mut)}
+.big{font-size:20px;font-weight:700}
+.err{background:#FDECEA;color:#8C1D12;border-radius:12px;padding:10px 12px;font-size:13px;line-height:1.4}
+.kpis{display:flex;gap:12px}
+.kpi{flex:1;border-radius:18px;padding:16px;display:flex;flex-direction:column;gap:6px}
+.kpi small{font-size:12px;font-weight:600}.kpi b{font-size:30px;line-height:1}.kpi span{font-size:13px}
+.kpi.a{background:var(--p);color:#fff}.kpi.a small,.kpi.a span{color:#D5DDFF}
+.kpi.b{background:var(--amber);color:#3A2500}
+.acts{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+.act{height:64px;border:1px solid var(--in);border-radius:14px;background:#fff;color:var(--ink);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;font-size:12px;font-weight:600}
+.act.p{background:var(--p);border-color:var(--p);color:#fff}
+.li{display:flex;align-items:center;gap:8px;padding:8px 0;border-top:1px solid #EEF1F7}
+.li .m{flex:1;min-width:0;display:flex;flex-direction:column;gap:1px}.li .m b{font-size:13.5px}.li .m small{font-size:12px;color:var(--mut)}
+.li .r{text-align:right;display:flex;flex-direction:column;gap:1px}.li .r b{font-size:13px}.li .r small{font-size:12px;color:var(--mut)}
+.kv{display:flex;justify-content:space-between;align-items:center;background:var(--bg);border-radius:12px;padding:10px 12px}
+.kv span{font-size:13px;color:var(--mut)}.kv b{font-size:14px}
+.ck{display:flex;gap:10px;align-items:flex-start;font-size:13px;line-height:1.4}
+.ck svg{flex:none;margin-top:1px}
+.fine{font-size:11.5px;color:var(--mut);line-height:1.4}
+.grp{padding:12px 14px;border-bottom:1px solid #EEF1F7;display:flex;flex-direction:column;gap:8px}
+.grp:last-child{border-bottom:none}
+.gh{display:flex;justify-content:space-between;align-items:baseline}.gh b{font-size:14.5px}.gh small{font-size:12px;color:var(--mut)}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chip{display:flex;align-items:center;gap:2px;height:40px;border-radius:999px;padding:0 4px 0 12px;font-weight:600;font-size:12.5px}
+.chip button{width:32px;height:32px;border:none;background:transparent;border-radius:50%;color:inherit;font-size:18px;line-height:1;opacity:.7}
+.empty{display:flex;flex-direction:column;align-items:center;gap:12px;text-align:center;padding:32px 20px}
+.empty b{font-size:16px}.empty span{font-size:13.5px;color:var(--mut);line-height:1.45}
+.mt{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+.mt div{border-radius:10px;padding:8px 10px;display:flex;flex-direction:column;gap:1px}.mt small{font-size:11px;font-weight:600}.mt b{font-size:15px}
+.nav{flex:none;background:#fff;border-top:1px solid var(--line);display:flex;padding:6px 6px calc(10px + env(safe-area-inset-bottom));gap:2px}
+.nav button{flex:1;height:56px;border:none;background:transparent;border-radius:14px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;color:var(--mut);font-size:11px;font-weight:600}
+.nav button.on{color:var(--p)}
+.ov{position:absolute;inset:0;background:rgba(15,23,42,.5);display:flex;flex-direction:column;justify-content:flex-end;z-index:20}
+.sheet{background:#fff;border-radius:24px 24px 0 0;height:74%;display:flex;flex-direction:column;padding-bottom:env(safe-area-inset-bottom)}
+.sh{display:flex;align-items:center;padding:16px 16px 6px 20px}.sh div{flex:1;display:flex;flex-direction:column;gap:2px}.sh b{font-size:18px}.sh span{font-size:12.5px;color:var(--mut)}
+.sh button{width:44px;height:44px;border:none;background:var(--bg);border-radius:14px;display:grid;place-items:center}
+.sb{flex:1;min-height:0;overflow-y:auto;padding:4px 16px 16px}
+.pk{padding:12px 0;border-bottom:1px solid #EEF1F7;display:flex;flex-direction:column;gap:8px}
+.pk b{font-size:14.5px}
+.pk .chips button{min-height:44px;border:1px solid var(--in);background:#fff;border-radius:12px;padding:0 12px;display:flex;align-items:center;gap:8px;font-size:13.5px;font-weight:600;color:var(--ink)}
+.dot{width:10px;height:10px;border-radius:50%}
+#toast{position:absolute;left:16px;right:16px;bottom:88px;background:var(--ink);color:#fff;border-radius:14px;padding:12px 14px;font-size:13px;line-height:1.4;box-shadow:0 8px 24px rgba(16,24,40,.25);z-index:30;opacity:0;transform:translateY(8px);transition:.2s;pointer-events:none}
+#toast.on{opacity:1;transform:none}
+[hidden]{display:none!important}
+</style>
+</head>
+<body>
+<div id="app">
+  <header class="top">
+    <div class="logo"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#3A2500" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M13 2 4 14h7l-1 8 9-12h-7l1-8z"/></svg></div>
+    <div><h1>Censo de Carga</h1><p id="sub"></p></div>
+  </header>
+  <main id="view"></main>
+  <nav class="nav" id="nav"></nav>
+  <div id="layer"></div>
+  <div id="toast" role="status" aria-live="polite"></div>
+</div>
+
+<script>
+(function () {
+'use strict';
+
+/* ---------- utilidades ---------- */
+var $ = function (s, r) { return (r || document).querySelector(s); };
+var esc = function (s) { return String(s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); };
+var num = function (x) { var n = parseFloat(String(x).replace(',', '.')); return isNaN(n) ? 0 : n; };
+var fmt = function (n, d) { return n.toLocaleString('es', { minimumFractionDigits: d, maximumFractionDigits: d }); };
+var uid = function () { return Date.now().toString(36) + Math.random().toString(36).slice(2, 6); };
+var clone = function (o) { return JSON.parse(JSON.stringify(o)); };
+
+/* ---------- almacenamiento local (persistente en el dispositivo) ---------- */
+var mem = {};
+var store = {
+  get: function (k, def) { try { var v = localStorage.getItem(k); return v == null ? def : JSON.parse(v); } catch (e) { return k in mem ? mem[k] : def; } },
+  set: function (k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) { mem[k] = v; } }
+};
+
+/* ---------- datos ---------- */
+var SEED = [
+  ['Bombillo LED', 9, 110, 0.9], ['Bombillo LED', 15, 110, 0.9], ['Bombillo LED', 20, 110, 0.9], ['Bombillo LED', 25, 110, 0.9], ['Bombillo LED', 30, 110, 0.9],
+  ['Aire acondicionado', 1000, 110, 0.85], ['Aire acondicionado', 1400, 220, 0.85], ['Aire acondicionado', 2000, 220, 0.85],
+  ['Nevera', 300, 110, 0.8], ['Televisor', 120, 110, 0.9], ['Lavadora', 500, 110, 0.8],
+  ['Cocina eléctrica', 3500, 220, 1], ['Ventilador de techo', 75, 110, 0.85], ['Calentador de agua', 2500, 220, 1]
+].map(function (a, i) { return { id: 's' + (i + 1), name: a[0], w: a[1], v: a[2], fp: a[3] }; });
+
+var lib = store.get('cc.lib', null);
+if (!lib) { lib = clone(SEED); store.set('cc.lib', lib); }
+var draft = store.get('cc.draft', null) || { cliente: '', contrato: '', direccion: '', items: [] };
+var reports = store.get('cc.reports', []);
+var S = { tab: 'censo', picker: false, editId: null, viewId: reports.length ? reports[0].id : null, nf: { name: '', w: '', fp: '0.9', v: 110 } };
+
+var saveDraft = function () { store.set('cc.draft', draft); };
+var saveLib = function () { store.set('cc.lib', lib); };
+var saveReports = function () { store.set('cc.reports', reports); };
+
+/* ---------- cálculos ---------- */
+var BRK = [15, 20, 25, 30, 35, 40, 45, 50, 60, 70, 80, 90, 100, 110, 125, 150, 175, 200, 225, 250, 300, 350, 400];
+// [protección máxima en A, calibre]. #12 y #10 quedan limitados a 20 A y 30 A (Sección 240.4(D)).
+var WIRE = [[20, '#12 AWG'], [30, '#10 AWG'], [50, '#8 AWG'], [65, '#6 AWG'], [85, '#4 AWG'], [100, '#3 AWG'], [115, '#2 AWG'], [130, '#1 AWG'], [150, '1/0 AWG'], [175, '2/0 AWG'], [200, '3/0 AWG'], [230, '4/0 AWG'], [255, '250 kcmil'], [285, '300 kcmil'], [310, '350 kcmil'], [335, '400 kcmil'], [380, '500 kcmil']];
+var GND = [[20, '#12 AWG'], [60, '#10 AWG'], [100, '#8 AWG'], [200, '#6 AWG'], [300, '#4 AWG'], [400, '#3 AWG']];
+// Breaker mínimo para acometidas principales cuando la carga es baja (valor indicado por el usuario; confirmar contra la norma).
+// El cable se toma de la tabla WIRE según este breaker (60 A -> #6 AWG).
+var MIN = { brk: 60 };
+
+function calc(items) {
+  var totW = 0, kwh = 0, kva = 0;
+  var rows = items.map(function (it) {
+    var q = num(it.qty), t = num(it.time);
+    var tw = it.w * q, hrs = it.unit === 'min' ? t / 60 : t;
+    var fp = it.fp > 0 ? it.fp : 0.9;
+    var k = tw * hrs / 1000, va = tw / fp / 1000;
+    totW += tw; kwh += k; kva += va;
+    return { id: it.id, eq: it.eq, w: it.w, v: it.v, fp: fp, qty: it.qty, time: it.time, unit: it.unit, tw: tw, k: k, va: va };
+  });
+  var amps = kva * 1000 / 220, need = amps * 1.25;
+  var brk = null; for (var i = 0; i < BRK.length; i++) { if (BRK[i] >= need) { brk = BRK[i]; break; } }
+  var wire = null, gnd = null;
+  if (brk) {
+    for (var j = 0; j < WIRE.length; j++) { if (WIRE[j][0] >= brk) { wire = WIRE[j][1]; break; } }
+    for (var g = 0; g < GND.length; g++) { if (GND[g][0] >= brk) { gnd = GND[g][1]; break; } }
+  }
+  var minimo = false;
+  if (brk !== null && brk < MIN.brk) {
+    brk = MIN.brk; minimo = true;
+    for (var w2 = 0; w2 < WIRE.length; w2++) { if (WIRE[w2][0] >= brk) { wire = WIRE[w2][1]; break; } }
+    for (var m = 0; m < GND.length; m++) { if (GND[m][0] >= brk) { gnd = GND[m][1]; break; } }
+  }
+  return { minimo: minimo, rows: rows, totW: totW, kwh: kwh, kva: kva, fpg: kva > 0 ? totW / 1000 / kva : 0, amps: amps, brk: brk, wire: wire, gnd: gnd, has: totW > 0 };
+}
+function protections(c) {
+  if (!c.brk) return ['La carga supera los 400 A: requiere proyecto eléctrico específico para la acometida.'];
+  return [
+    'Interruptor principal bipolar de ' + c.brk + ' A en el tablero.',
+    'Interruptor diferencial (GFCI) de 30 mA en baños, cocina y exteriores.',
+    'Supresor de sobretensiones en la entrada del tablero.',
+    'Barra de tierra y electrodo de puesta a tierra con conductor ' + c.gnd + ' (Cu).',
+    'Breakers individuales por circuito, dimensionados a cada equipo.'
+  ];
+}
+var okContrato = function (c) { return /^10000\d{7}$/.test(c) || /^K000\d{9}$/.test(c); };
+var fechaLarga = function (iso) { return new Date(iso).toLocaleString('es', { dateStyle: 'long', timeStyle: 'short' }); };
+var fechaCorta = function (iso) { return new Date(iso).toLocaleDateString('es', { day: '2-digit', month: 'short', year: 'numeric' }); };
+
+/* ---------- iconos ---------- */
+var svg = function (p, s) { return '<svg width="' + (s || 22) + '" height="' + (s || 22) + '" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' + p + '</svg>'; };
+var I = {
+  trash: svg('<path d="M3 6h18M8 6V4h8v2M6 6l1 14h10l1-14M10 11v5M14 11v5"/>', 20),
+  plus: svg('<path d="M12 5v14M5 12h14"/>', 20),
+  check: svg('<path d="M5 12l5 5L20 7"/>', 20),
+  cal: svg('<rect x="3" y="4" width="18" height="18" rx="3"/><path d="M16 2v4M8 2v4M3 10h18"/>', 18),
+  lock: svg('<rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/>', 16),
+  pdf: svg('<path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8l-5-5z"/><path d="M14 3v5h5M9 13h6M9 17h6"/>'),
+  print: svg('<path d="M6 9V3h12v6M6 18H4a1 1 0 0 1-1-1v-6a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v6a1 1 0 0 1-1 1h-2"/><rect x="6" y="14" width="12" height="7" rx="1"/>'),
+  send: svg('<path d="M22 2 11 13M22 2l-7 20-4-9-9-4 20-7z"/>'),
+  shield: svg('<path d="M12 3 4 6v6c0 4.5 3.2 8 8 9 4.8-1 8-4.5 8-9V6l-8-3z"/><path d="M9 12l2 2 4-4"/>', 20),
+  bolt: svg('<path d="M13 2 4 14h7l-1 8 9-12h-7l1-8z"/>', 40),
+  close: svg('<path d="M6 6l12 12M18 6 6 18"/>', 20),
+  tCenso: svg('<rect x="5" y="3" width="14" height="18" rx="2"/><path d="M9 8h6M9 12h6M9 16h4"/>'),
+  tLib: svg('<ellipse cx="12" cy="6" rx="8" ry="3"/><path d="M4 6v6c0 1.7 3.6 3 8 3s8-1.3 8-3V6M4 12v6c0 1.7 3.6 3 8 3s8-1.3 8-3v-6"/>'),
+  tRes: svg('<path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/>'),
+  tRep: svg('<path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8l-5-5z"/><path d="M14 3v5h5M9 13h6M9 17h4"/>')
+};
+
+/* ---------- vistas ---------- */
+var TITLES = { censo: 'Nuevo censo de carga', biblioteca: 'Biblioteca de equipos', resultado: 'Resultado del censo', reportes: 'Reportes guardados' };
+
+function itemCard(r) {
+  return '<article class="card" data-id="' + r.id + '">' +
+    '<div class="ih"><div class="im"><b>' + esc(r.eq) + '</b><small>' + fmt(r.w, 0) + ' W por unidad</small></div>' +
+    '<span class="pill v' + r.v + '">' + r.v + ' V</span>' +
+    '<button class="ib" data-act="rm" aria-label="Quitar equipo">' + I.trash + '</button></div>' +
+    '<div class="ir"><label class="f q"><span class="lbl">CANTIDAD</span><input class="inp" inputmode="decimal" data-item="qty" value="' + esc(r.qty) + '"></label>' +
+    '<label class="f g"><span class="lbl">TIEMPO DIARIO</span><input class="inp" inputmode="decimal" data-item="time" value="' + esc(r.time) + '"></label>' +
+    '<div class="seg"><button data-act="unit" data-u="h" class="' + (r.unit === 'h' ? 'on' : '') + '">h</button><button data-act="unit" data-u="min" class="' + (r.unit === 'min' ? 'on' : '') + '">min</button></div></div>' +
+    '<div class="st"><div><small>Potencia</small><b id="s-' + r.id + '-tw"></b></div><div><small>FP</small><b id="s-' + r.id + '-fp"></b></div>' +
+    '<div><small>kVA</small><b id="s-' + r.id + '-va"></b></div><div><small>kWh</small><b id="s-' + r.id + '-k"></b></div></div></article>';
+}
+
+function vCenso() {
+  var c = calc(draft.items);
+  return '<section class="card">' +
+    '<label class="f"><span class="lbl">USUARIO</span><input class="inp" id="f-cliente" data-draft="cliente" value="' + esc(draft.cliente) + '" placeholder="Nombre del usuario" autocomplete="off"></label>' +
+    '<label class="f"><span class="lbl">NÚMERO DE CONTRATO (OPCIONAL)</span><input class="inp" id="f-contrato" data-draft="contrato" autocapitalize="characters" autocomplete="off" value="' + esc(draft.contrato) + '" placeholder="100001234567  o  K000123456789" style="letter-spacing:.05em;font-weight:600"></label>' +
+    '<label class="f"><span class="lbl">DIRECCIÓN DEL ESTABLECIMIENTO</span><textarea class="inp" rows="2" data-draft="direccion" placeholder="Calle, edificio o casa, sector, ciudad">' + esc(draft.direccion) + '</textarea></label>' +
+    '<div class="note">' + I.cal + '<span style="flex:1">Fecha: se registra sola al guardar</span>' + I.lock + '</div></section>' +
+    '<div class="h2"><b>Equipos del censo</b><span>' + c.rows.length + (c.rows.length === 1 ? ' equipo' : ' equipos') + '</span></div>' +
+    c.rows.map(itemCard).join('') +
+    '<button class="btn dash" data-act="picker">' + I.plus + ' Agregar equipo de la biblioteca</button>' +
+    '<section class="card"><div class="row"><span class="k">Carga acumulada</span><span class="big" id="tot-w"></span></div>' +
+    '<div class="row"><span class="k">Factor de potencia global</span><b id="tot-fp"></b></div>' +
+    '<div class="err" id="save-err" hidden></div>' +
+    '<button class="btn p" data-act="save">' + I.check + ' ' + (S.editId ? 'Guardar cambios y calcular' : 'Guardar censo y calcular') + '</button>' +
+    (draft.items.length || draft.cliente || draft.contrato || draft.direccion || S.editId ? '<button class="btn o" data-act="newcenso">Descartar y empezar de cero</button>' : '') +
+    '</section>';
+}
+
+function groupsOf() {
+  var g = [];
+  lib.forEach(function (e) {
+    var x = g.filter(function (q) { return q.name === e.name; })[0];
+    if (!x) { x = { name: e.name, list: [] }; g.push(x); }
+    x.list.push(e);
+  });
+  g.sort(function (a, b) { return a.name.localeCompare(b.name, 'es'); });
+  g.forEach(function (x) { x.list.sort(function (a, b) { return a.v - b.v || a.w - b.w; }); });
+  return g;
+}
+var varLabel = function (e) { return fmt(e.w, 0) + ' W · ' + e.v + ' V · FP ' + fmt(e.fp, 2); };
+
+function vBiblioteca() {
+  var g = groupsOf(), nf = S.nf;
+  return '<section class="card"><div style="display:flex;flex-direction:column;gap:3px"><b style="font-size:17px">Nuevo equipo o variante</b>' +
+    '<span class="fine">Si el nombre ya existe, se suma como variante nueva (otros watts u otro voltaje).</span></div>' +
+    '<label class="f"><span class="lbl">NOMBRE</span><input class="inp" data-nf="name" value="' + esc(nf.name) + '" placeholder="Ej. Bombillo LED" autocomplete="off"></label>' +
+    '<div style="display:flex;gap:10px"><label class="f" style="flex:1"><span class="lbl">CONSUMO (W)</span><input class="inp" inputmode="decimal" data-nf="w" value="' + esc(nf.w) + '" placeholder="0"></label>' +
+    '<label class="f" style="flex:1"><span class="lbl">FACTOR DE POTENCIA</span><input class="inp" inputmode="decimal" data-nf="fp" value="' + esc(nf.fp) + '" placeholder="0.90"></label></div>' +
+    '<div class="seg wide"><button data-act="nfv" data-v="110" class="' + (nf.v === 110 ? 'on' : '') + '">110 V</button><button data-act="nfv" data-v="220" class="' + (nf.v === 220 ? 'on' : '') + '">220 V</button></div>' +
+    '<button class="btn p" data-act="addlib" style="height:48px;font-size:15px">' + I.plus + ' Guardar en biblioteca</button></section>' +
+    '<div class="h2"><b>Mi biblioteca</b><span>' + lib.length + ' variantes en ' + g.length + ' equipos</span></div>' +
+    '<div class="card" style="padding:0;gap:0;overflow:hidden">' +
+    (g.length ? g.map(function (x) {
+      return '<div class="grp"><div class="gh"><b>' + esc(x.name) + '</b><small>' + x.list.length + (x.list.length === 1 ? ' variante' : ' variantes') + '</small></div><div class="chips">' +
+        x.list.map(function (e) { return '<span class="chip v' + e.v + '">' + varLabel(e) + '<button data-act="rmlib" data-id="' + e.id + '" aria-label="Eliminar variante">×</button></span>'; }).join('') +
+        '</div></div>';
+    }).join('') : '<div class="empty"><span>La biblioteca está vacía. Agrega tu primer equipo arriba.</span></div>') + '</div>';
+}
+
+function actionsBar(id) {
+  return '<div class="acts">' +
+    '<button class="act p" data-act="pdf" data-id="' + id + '">' + I.pdf + 'PDF</button>' +
+    '<button class="act" data-act="print" data-id="' + id + '">' + I.print + 'Imprimir</button>' +
+    '<button class="act" data-act="send" data-id="' + id + '">' + I.send + 'Correo / WhatsApp</button></div>';
+}
+
+function vResultado() {
+  var r = reports.filter(function (x) { return x.id === S.viewId; })[0] || reports[0];
+  if (!r) return '<div class="card empty">' + I.bolt + '<b>Aún no hay resultados</b><span>Completa el censo y pulsa Guardar censo para obtener kWh, kVA y las protecciones recomendadas.</span></div>';
+  var c = calc(r.items), pr = protections(c);
+  return '<section class="card tint"><div style="display:flex;flex-direction:column;gap:2px"><span class="lbl">CENSO DE</span><b style="font-size:19px">' + esc(r.cliente) + '</b></div>' +
+    '<div class="row"><span class="k">Contrato</span><b style="font-size:13px;letter-spacing:.03em">' + esc(cLabel(r)) + '</b></div>' +
+    '<div class="row"><span class="k">Dirección</span><b style="font-size:13px;text-align:right;line-height:1.35">' + esc(r.direccion || 'Sin dirección') + '</b></div>' +
+    '<div class="row"><span class="k">Fecha</span><b style="font-size:13px;text-align:right">' + fechaLarga(r.fecha) + '</b></div></section>' +
+    '<div class="kpis"><div class="kpi a"><small>CONSUMO DIARIO</small><b>' + fmt(c.kwh, 2) + '</b><span>kWh por día</span></div>' +
+    '<div class="kpi b"><small>POTENCIA APARENTE</small><b>' + fmt(c.kva, 2) + '</b><span>kVA totales</span></div></div>' +
+    '<section class="card"><span class="lbl">REPORTE EN PDF</span>' + actionsBar(r.id) + '</section>' +
+    '<section class="card"><div class="row"><b style="font-size:16px">Desglose por equipo</b><span class="k">' + fmt(c.totW, 0) + ' W · FP global ' + (c.has ? fmt(c.fpg, 2) : '—') + '</span></div>' +
+    c.rows.map(function (q) {
+      return '<div class="li"><div class="m"><b>' + esc(q.eq) + '</b><small>' + esc(q.qty) + ' x ' + fmt(q.w, 0) + ' W · ' + q.v + ' V · FP ' + fmt(q.fp, 2) + '</small></div>' +
+        '<div class="r"><b>' + fmt(q.va, 2) + ' kVA</b><small>' + fmt(q.k, 2) + ' kWh</small></div></div>';
+    }).join('') + '</section>' +
+    '<section class="card"><div style="display:flex;align-items:center;gap:8px;color:var(--p)">' + I.shield + '<b style="font-size:16px;color:var(--ink)">Leyenda: acometida recomendada</b></div>' +
+    '<span class="fine" style="font-size:12.5px">Corriente estimada: ' + fmt(c.amps, 1) + ' A a 220 V</span>' +
+    (c.minimo ? '<span class="fine" style="font-size:12.5px">Carga baja: se aplicó el mínimo para acometidas principales (' + MIN.brk + ' A, ' + c.wire + ').</span>' : '') +
+    '<div style="display:flex;flex-direction:column;gap:8px">' +
+    '<div class="kv"><span>Breaker principal</span><b>' + (c.brk ? c.brk + ' A, 2 polos' : 'Requiere proyecto') + '</b></div>' +
+    '<div class="kv"><span>Cable de fases</span><b>' + (c.wire ? c.wire + ' Cu THW' : '—') + '</b></div>' +
+    '<div class="kv"><span>Neutro</span><b>' + (c.wire ? c.wire + ' Cu THW' : '—') + '</b></div>' +
+    '<div class="kv"><span>Tierra (puesta a tierra)</span><b>' + (c.gnd ? c.gnd + ' Cu' : '—') + '</b></div></div>' +
+    '<div style="display:flex;flex-direction:column;gap:6px;padding-top:4px"><span class="lbl">PROTECCIONES EN LA ACOMETIDA</span>' +
+    pr.map(function (t) { return '<div class="ck"><span style="color:var(--ok)">' + I.check + '</span><span>' + esc(t) + '</span></div>'; }).join('') + '</div>' +
+    '<span class="fine">Valores orientativos con cobre THW 75 °C y breaker al 125 % de la corriente. Validar con un profesional.</span></section>' +
+    '<button class="btn o" data-act="edit" data-id="' + r.id + '">Editar censo</button>';
+}
+
+function vReportes() {
+  return '<div style="display:flex;align-items:center;justify-content:space-between;gap:10px"><div style="display:flex;flex-direction:column;gap:1px"><b style="font-size:17px">Reportes guardados</b><span class="fine" style="font-size:12.5px">' + reports.length + (reports.length === 1 ? ' reporte' : ' reportes') + '</span></div>' +
+    '<button class="btn p sm" data-act="newcenso">' + I.plus + ' Nuevo censo</button></div>' +
+    (reports.length ? reports.map(function (r) {
+      var c = calc(r.items);
+      return '<article class="card">' +
+        '<div style="display:flex;justify-content:space-between;align-items:flex-start;gap:10px"><div style="display:flex;flex-direction:column;gap:2px;min-width:0"><b style="font-size:15px">' + esc(r.cliente) + '</b>' +
+        '<span class="fine" style="font-size:12.5px;letter-spacing:.03em">' + (r.contrato ? 'Contrato ' + esc(r.contrato) : 'Sin contrato') + '</span><span class="fine" style="font-size:12.5px">' + esc(r.direccion || 'Sin dirección') + '</span></div>' +
+        '<span class="fine" style="white-space:nowrap">' + fechaCorta(r.fecha) + '</span></div>' +
+        '<div class="mt"><div style="background:#E3EAFF;color:var(--pd)"><small>kWh/día</small><b>' + fmt(c.kwh, 2) + '</b></div><div style="background:#FFEBC2;color:#7A4200"><small>kVA</small><b>' + fmt(c.kva, 2) + '</b></div><div style="background:var(--bg)"><small style="color:var(--mut)">Breaker</small><b>' + (c.brk ? c.brk + ' A' : '—') + '</b></div></div>' +
+        actionsBar(r.id) +
+        '<div style="display:flex;gap:8px"><button class="btn o sm" style="flex:1" data-act="open" data-id="' + r.id + '">Ver detalle</button><button class="btn o sm" style="color:var(--err);border-color:#E8B4AE" data-act="delrep" data-id="' + r.id + '" aria-label="Eliminar reporte">' + I.trash + '</button></div></article>';
+    }).join('') : '<div class="card empty">' + I.bolt + '<b>Sin reportes todavía</b><span>Los censos que guardes aparecerán aquí para exportarlos, imprimirlos o enviarlos.</span></div>');
+}
+
+function vPicker() {
+  return '<div class="ov" data-act="closepicker"><div class="sheet" data-stop="1"><div class="sh"><div><b>Elegir equipo</b><span>Toca la variante que quieras agregar</span></div><button data-act="closepicker" aria-label="Cerrar">' + I.close + '</button></div><div class="sb">' +
+    (lib.length ? groupsOf().map(function (g) {
+      return '<div class="pk"><b>' + esc(g.name) + '</b><div class="chips">' + g.list.map(function (e) {
+        return '<button data-act="pick" data-id="' + e.id + '"><span class="dot" style="background:' + (e.v === 220 ? '#F5A524' : '#2342D6') + '"></span>' + varLabel(e) + '</button>';
+      }).join('') + '</div></div>';
+    }).join('') : '<div class="empty"><span>La biblioteca está vacía. Agrega equipos en la pestaña Biblioteca.</span></div>') + '</div></div></div>';
+}
+
+/* ---------- render ---------- */
+var view = $('#view'), layer = $('#layer');
+function renderNav() {
+  var t = [['censo', 'Censo', I.tCenso], ['biblioteca', 'Biblioteca', I.tLib], ['resultado', 'Resultado', I.tRes], ['reportes', 'Reportes', I.tRep]];
+  $('#nav').innerHTML = t.map(function (x) { return '<button data-act="tab" data-t="' + x[0] + '" class="' + (S.tab === x[0] ? 'on' : '') + '">' + x[2] + x[1] + '</button>'; }).join('');
+}
+function render(keepScroll) {
+  var top = view.scrollTop;
+  $('#sub').textContent = TITLES[S.tab];
+  view.innerHTML = S.tab === 'censo' ? vCenso() : S.tab === 'biblioteca' ? vBiblioteca() : S.tab === 'resultado' ? vResultado() : vReportes();
+  layer.innerHTML = S.picker ? vPicker() : '';
+  renderNav();
+  if (S.tab === 'censo') updateCalc();
+  view.scrollTop = keepScroll ? top : 0;
+}
+function setT(id, v) { var e = document.getElementById(id); if (e) e.textContent = v; }
+function updateCalc() {
+  var c = calc(draft.items);
+  c.rows.forEach(function (r) {
+    setT('s-' + r.id + '-tw', fmt(r.tw, 0) + ' W'); setT('s-' + r.id + '-fp', fmt(r.fp, 2));
+    setT('s-' + r.id + '-va', fmt(r.va, 2)); setT('s-' + r.id + '-k', fmt(r.k, 2));
+  });
+  setT('tot-w', fmt(c.totW, 0) + ' W'); setT('tot-fp', c.has ? fmt(c.fpg, 2) : '—');
+}
+var tTimer;
+function toast(msg) {
+  var t = $('#toast'); t.textContent = msg; t.classList.add('on');
+  clearTimeout(tTimer); tTimer = setTimeout(function () { t.classList.remove('on'); }, 3200);
+}
+
+/* ---------- generador de PDF (sin librerías) ---------- */
+var WR = [278,278,355,556,556,889,667,191,333,333,389,584,278,333,278,278,556,556,556,556,556,556,556,556,556,556,278,278,584,584,584,556,1015,667,667,722,722,667,611,778,722,278,500,667,556,833,722,778,667,778,722,667,611,722,667,944,667,667,611,278,278,278,469,556,333,556,556,500,556,556,278,556,556,222,222,500,222,833,556,556,556,556,333,500,278,556,500,722,500,500,500,334,260,334,584];
+var WB = [278,333,474,556,556,889,722,238,333,333,389,584,278,333,278,278,556,556,556,556,556,556,556,556,556,556,333,333,584,584,584,611,975,722,722,722,722,667,611,778,722,278,556,722,611,833,722,778,667,778,722,667,611,722,667,944,667,667,611,333,278,333,584,556,333,556,611,556,611,556,333,611,611,278,278,556,278,889,611,611,611,611,389,556,333,611,556,778,556,556,500,389,280,389,584];
+function tw(s, size, bold) {
+  var t = 0, tbl = bold ? WB : WR;
+  for (var i = 0; i < s.length; i++) {
+    var ch = s.charAt(i), code = ch.charCodeAt(0);
+    if (code < 32 || code > 126) {
+      var b = ch.normalize('NFD').replace(/[̀-ͯ]/g, '');
+      if (b.length === 1 && b.charCodeAt(0) >= 32 && b.charCodeAt(0) <= 126) code = b.charCodeAt(0);
+      else if (ch === '°') { t += 400; continue; } else if (ch === '·') { t += 278; continue; } else code = 110;
+    }
+    t += tbl[code - 32];
+  }
+  return t * size / 1000;
+}
+function enc(s) {
+  var map = { '—': '-', '–': '-', '’': "'", '‘': "'", '“': '"', '”': '"', '≥': '>=', '≤': '<=', '×': 'x' };
+  var o = '';
+  for (var i = 0; i < s.length; i++) {
+    var ch = map[s.charAt(i)] || s.charAt(i), code = ch.charCodeAt(0);
+    if (ch.length > 1) { o += ch; continue; }
+    if (code > 255) ch = '?';
+    if (ch === '\\' || ch === '(' || ch === ')') o += '\\';
+    o += ch;
+  }
+  return o;
+}
+function wrapText(s, size, bold, maxW) {
+  var words = String(s).split(/\s+/), lines = [], cur = '';
+  words.forEach(function (w) {
+    var t = cur ? cur + ' ' + w : w;
+    if (!cur || tw(t, size, bold) <= maxW) cur = t; else { lines.push(cur); cur = w; }
+  });
+  if (cur) lines.push(cur);
+  return lines.length ? lines : [''];
+}
+
+function buildPdf(r) {
+  var c = calc(r.items), pr = protections(c);
+  var W = 595, H = 842, M = 40, CW = W - 2 * M;
+  var COL = { p: [0.137, 0.259, 0.839], amber: [0.961, 0.647, 0.145], ink: [0.09, 0.125, 0.227], mut: [0.357, 0.396, 0.467], line: [0.835, 0.863, 0.918], lt: [0.933, 0.949, 0.984], white: [1, 1, 1], brown: [0.227, 0.145, 0], ok: [0.106, 0.498, 0.294] };
+  var rgb = function (a) { return a.map(function (v) { return v.toFixed(3); }).join(' '); };
+  var pages = [], ops, y;
+  var f2 = function (n) { return n.toFixed(2); };
+
+  function T(x, yy, s, o) {
+    o = o || {}; var size = o.size || 9, bold = !!o.bold, xx = x, wd = tw(s, size, bold);
+    if (o.align === 'right') xx = x - wd; else if (o.align === 'center') xx = x - wd / 2;
+    ops.push('BT /' + (bold ? 'F2' : 'F1') + ' ' + size + ' Tf ' + rgb(o.color || COL.ink) + ' rg ' + f2(xx) + ' ' + f2(yy) + ' Td (' + enc(s) + ') Tj ET');
+  }
+  function rp(x, yy, w, h, rad) {
+    var k = 0.5523 * rad;
+    return f2(x + rad) + ' ' + f2(yy) + ' m ' + f2(x + w - rad) + ' ' + f2(yy) + ' l ' +
+      f2(x + w - rad + k) + ' ' + f2(yy) + ' ' + f2(x + w) + ' ' + f2(yy + rad - k) + ' ' + f2(x + w) + ' ' + f2(yy + rad) + ' c ' +
+      f2(x + w) + ' ' + f2(yy + h - rad) + ' l ' +
+      f2(x + w) + ' ' + f2(yy + h - rad + k) + ' ' + f2(x + w - rad + k) + ' ' + f2(yy + h) + ' ' + f2(x + w - rad) + ' ' + f2(yy + h) + ' c ' +
+      f2(x + rad) + ' ' + f2(yy + h) + ' l ' +
+      f2(x + rad - k) + ' ' + f2(yy + h) + ' ' + f2(x) + ' ' + f2(yy + h - rad + k) + ' ' + f2(x) + ' ' + f2(yy + h - rad) + ' c ' +
+      f2(x) + ' ' + f2(yy + rad) + ' l ' +
+      f2(x) + ' ' + f2(yy + rad - k) + ' ' + f2(x + rad - k) + ' ' + f2(yy) + ' ' + f2(x + rad) + ' ' + f2(yy) + ' c h';
+  }
+  function box(x, yy, w, h, fill, stroke, rad) {
+    var p = rp(x, yy, w, h, rad || 0.01);
+    if (fill) ops.push(rgb(fill) + ' rg ' + p + ' f');
+    if (stroke) ops.push(rgb(stroke) + ' RG 0.75 w ' + p + ' S');
+  }
+  function ln(x1, y1, x2, y2, col, lw) { ops.push(rgb(col) + ' RG ' + (lw || 0.75) + ' w ' + f2(x1) + ' ' + f2(y1) + ' m ' + f2(x2) + ' ' + f2(y2) + ' l S'); }
+  function bolt(bx, by, s) {
+    var P = [[17, 27], [7, 14], [14, 14], [12, 3], [23, 17], [16, 17]].map(function (p) { return f2(bx + p[0] * s / 30) + ' ' + f2(by + p[1] * s / 30); });
+    ops.push(rgb(COL.brown) + ' rg ' + P[0] + ' m ' + P.slice(1).map(function (p) { return p + ' l'; }).join(' ') + ' h f');
+  }
+  function newPage(first) {
+    ops = []; pages.push(ops); y = H - M;
+    if (!first) {
+      T(M, y - 8, 'Reporte de censo de carga', { size: 9, bold: true, color: COL.p });
+      T(W - M, y - 8, r.contrato ? 'Contrato ' + r.contrato : r.cliente, { size: 8.5, color: COL.mut, align: 'right' });
+      ln(M, y - 14, W - M, y - 14, COL.line, 0.75); y -= 30;
+    }
+  }
+  var cx = { eq: M + 8, cant: 292, wcu: 336, v: 368, fp: 400, t: 452, va: 502, k: 549 };
+  function tableHead() {
+    box(M, y - 14, CW, 18, COL.lt, null);
+    var o = { size: 7.5, bold: true, color: COL.mut };
+    T(cx.eq, y - 8, 'EQUIPO', o); T(cx.cant, y - 8, 'CANT.', Object.assign({ align: 'right' }, o)); T(cx.wcu, y - 8, 'W C/U', Object.assign({ align: 'right' }, o));
+    T(cx.v, y - 8, 'V', Object.assign({ align: 'right' }, o)); T(cx.fp, y - 8, 'FP', Object.assign({ align: 'right' }, o)); T(cx.t, y - 8, 'TIEMPO', Object.assign({ align: 'right' }, o));
+    T(cx.va, y - 8, 'kVA', Object.assign({ align: 'right' }, o)); T(cx.k, y - 8, 'kWh', Object.assign({ align: 'right' }, o));
+    y -= 20;
+  }
+
+  /* página 1: encabezado */
+  newPage(true);
+  box(M, y - 30, 30, 30, COL.amber, null, 8); bolt(M, y - 30, 30);
+  T(M + 40, y - 13, 'Reporte de censo de carga', { size: 17, bold: true });
+  T(M + 40, y - 26, 'Estimación de consumo y protecciones de la acometida', { size: 8.5, color: COL.mut });
+  ln(M, y - 40, W - M, y - 40, COL.p, 1.5); y -= 58;
+
+  /* datos */
+  var L = { size: 7.5, bold: true, color: COL.mut }, V = { size: 10, bold: true };
+  T(M, y, 'USUARIO', L); T(M + 270, y, 'CONTRATO', L);
+  var nameLines = wrapText(r.cliente, 10, true, 250);
+  nameLines.forEach(function (s, i) { T(M, y - 13 - i * 12, s, V); });
+  T(M + 270, y - 13, cLabel(r), V);
+  y -= 13 + nameLines.length * 12 + 8;
+  T(M, y, 'DIRECCIÓN', L); T(M + 270, y, 'FECHA DEL CENSO', L);
+  var addr = wrapText(r.direccion || 'Sin dirección', 10, true, 250);
+  addr.forEach(function (s, i) { T(M, y - 13 - i * 12, s, V); });
+  T(M + 270, y - 13, fechaLarga(r.fecha), V);
+  y -= 13 + addr.length * 12 + 14;
+
+  /* tabla */
+  tableHead();
+  c.rows.forEach(function (q) {
+    var nl = wrapText(q.eq, 9, true, 205), h = 8 + nl.length * 11;
+    if (y - h < 70) { newPage(false); tableHead(); }
+    nl.forEach(function (s, i) { T(cx.eq, y - 9 - i * 11, s, { size: 9, bold: true }); });
+    var yy = y - 9, o = { size: 9, align: 'right' };
+    T(cx.cant, yy, String(q.qty), o); T(cx.wcu, yy, fmt(q.w, 0), o); T(cx.v, yy, q.v + ' V', o); T(cx.fp, yy, fmt(q.fp, 2), o);
+    T(cx.t, yy, fmt(num(q.time), num(q.time) % 1 ? 1 : 0) + ' ' + q.unit, o); T(cx.va, yy, fmt(q.va, 2), o); T(cx.k, yy, fmt(q.k, 2), o);
+    ln(M, y - h + 3, W - M, y - h + 3, COL.line, 0.5); y -= h;
+  });
+  if (y - 24 < 70) { newPage(false); }
+  box(M, y - 17, CW, 21, [0.969, 0.976, 0.992], null); ln(M, y + 4, W - M, y + 4, COL.p, 1.25);
+  T(cx.eq, y - 8, 'TOTAL (' + fmt(c.totW, 0) + ' W)', { size: 9.5, bold: true });
+  T(cx.va, y - 8, fmt(c.kva, 2), { size: 9.5, bold: true, align: 'right' }); T(cx.k, y - 8, fmt(c.kwh, 2), { size: 9.5, bold: true, align: 'right' });
+  y -= 36;
+
+  /* indicadores */
+  if (y - 48 < 70) newPage(false);
+  var kw = (CW - 12) / 2;
+  box(M, y - 40, kw, 40, COL.p, null, 8); box(M + kw + 12, y - 40, kw, 40, COL.amber, null, 8);
+  T(M + 12, y - 24, 'Consumo diario', { size: 10, bold: true, color: COL.white });
+  T(M + kw - 12, y - 25, fmt(c.kwh, 2) + ' kWh', { size: 16, bold: true, color: COL.white, align: 'right' });
+  T(M + kw + 24, y - 24, 'Potencia aparente', { size: 10, bold: true, color: COL.brown });
+  T(M + 2 * kw + 0, y - 25, fmt(c.kva, 2) + ' kVA', { size: 16, bold: true, color: COL.brown, align: 'right' });
+  y -= 58;
+
+  /* leyenda */
+  var bl = []; pr.forEach(function (t) { bl.push(wrapText(t, 9, false, CW - 44)); });
+  var bh = bl.reduce(function (a, l) { return a + l.length * 11 + 3; }, 0);
+  var lh = 30 + 44 + 20 + bh + 8 + (c.minimo ? 12 : 0);
+  if (y - lh < 70) newPage(false);
+  box(M, y - lh, CW, lh, null, COL.line, 8);
+  T(M + 14, y - 20, 'Leyenda: acometida recomendada', { size: 12, bold: true });
+  var ly = y - 40, lx2 = M + 270;
+  var kv = function (x, yy, k, v) { T(x, yy, k, { size: 9, color: COL.mut }); T(x + 236 - 14, yy, v, { size: 9, bold: true, align: 'right' }); };
+  kv(M + 14, ly, 'Corriente estimada (220 V)', fmt(c.amps, 1) + ' A'); kv(lx2, ly, 'Breaker principal', c.brk ? c.brk + ' A, 2 polos' : 'Requiere proyecto');
+  kv(M + 14, ly - 16, 'Cable de fases y neutro', c.wire ? c.wire + ' Cu THW' : '—'); kv(lx2, ly - 16, 'Tierra', c.gnd ? c.gnd + ' Cu' : '—');
+  if (c.minimo) T(M + 14, ly - 34, 'Carga baja: se aplicó el mínimo para acometidas principales (' + MIN.brk + ' A, ' + c.wire + ').', { size: 8, color: COL.mut });
+  var by = ly - (c.minimo ? 54 : 42);
+  T(M + 14, by, 'PROTECCIONES EN LA ACOMETIDA', { size: 7.5, bold: true, color: COL.mut }); by -= 14;
+  bl.forEach(function (lines) {
+    box(M + 15, by + 1.5, 4, 4, COL.p, null);
+    lines.forEach(function (s, i) { T(M + 28, by - i * 11, s, { size: 9 }); });
+    by -= lines.length * 11 + 3;
+  });
+  y -= lh + 22;
+
+  /* firmas y nota */
+  if (y < 120) newPage(false);
+  var sy = Math.min(y - 24, 110);
+  ln(M, sy, M + 225, sy, [0.54, 0.58, 0.66], 0.75); ln(W - M - 225, sy, W - M, sy, [0.54, 0.58, 0.66], 0.75);
+  T(M, sy - 11, 'Realizado por (nombre y firma)', { size: 8, color: COL.mut }); T(W - M - 225, sy - 11, 'Recibido por el usuario', { size: 8, color: COL.mut });
+  wrapText('Valores orientativos calculados con el factor de potencia (FP) de cada equipo, cobre THW 75 °C y breaker al 125 % de la corriente. Deben validarse con las tablas de la normativa aplicable.', 7.5, false, CW)
+    .forEach(function (s, i) { T(M, sy - 30 - i * 10, s, { size: 7.5, color: COL.mut }); });
+
+  /* numeración */
+  pages.forEach(function (p, i) { ops = p; T(W / 2, 24, 'Página ' + (i + 1) + ' de ' + pages.length, { size: 7.5, color: COL.mut, align: 'center' }); });
+
+  /* ensamblado */
+  var out = '', offs = [];
+  var add = function (s) { out += s; };
+  var obj = function (n, body) { offs[n] = out.length; add(n + ' 0 obj\n' + body + '\nendobj\n'); };
+  add('%PDF-1.4\n%\xE2\xE3\xCF\xD3\n');
+  var np = pages.length, kids = [];
+  for (var i = 0; i < np; i++) kids.push((5 + i * 2) + ' 0 R');
+  obj(1, '<< /Type /Catalog /Pages 2 0 R >>');
+  obj(2, '<< /Type /Pages /Kids [' + kids.join(' ') + '] /Count ' + np + ' >>');
+  obj(3, '<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica /Encoding /WinAnsiEncoding >>');
+  obj(4, '<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica-Bold /Encoding /WinAnsiEncoding >>');
+  pages.forEach(function (p, i) {
+    var content = p.join('\n');
+    obj(5 + i * 2, '<< /Type /Page /Parent 2 0 R /MediaBox [0 0 ' + W + ' ' + H + '] /Resources << /Font << /F1 3 0 R /F2 4 0 R >> >> /Contents ' + (6 + i * 2) + ' 0 R >>');
+    obj(6 + i * 2, '<< /Length ' + content.length + ' >>\nstream\n' + content + '\nendstream');
+  });
+  var total = 5 + np * 2, xref = out.length;
+  add('xref\n0 ' + total + '\n0000000000 65535 f \n');
+  for (var n = 1; n < total; n++) add(('0000000000' + offs[n]).slice(-10) + ' 00000 n \n');
+  add('trailer\n<< /Size ' + total + ' /Root 1 0 R >>\nstartxref\n' + xref + '\n%%EOF');
+  var bytes = new Uint8Array(out.length);
+  for (var q = 0; q < out.length; q++) bytes[q] = out.charCodeAt(q) & 255;
+  return bytes;
+}
+
+/* ---------- PDF: guardar, imprimir, enviar ---------- */
+var cap = window.Capacitor, isNative = !!(cap && cap.isNativePlatform && cap.isNativePlatform());
+var plug = function (n) { return cap && cap.Plugins && cap.Plugins[n]; };
+function cLabel(r) { return r.contrato || 'Sin contrato'; }
+function pdfName(r) {
+  var base = r.contrato || r.cliente.normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[^A-Za-z0-9]+/g, '_').replace(/^_|_$/g, '') || 'reporte';
+  return 'Censo_' + base + '.pdf';
+}
+function shareTitle(r) { return 'Censo de carga - ' + (r.contrato ? 'Contrato ' + r.contrato : r.cliente); }
+function pdfFile(r) { return new File([buildPdf(r)], pdfName(r), { type: 'application/pdf' }); }
+function b64(bytes) { var s = ''; for (var i = 0; i < bytes.length; i += 8192) s += String.fromCharCode.apply(null, bytes.subarray(i, i + 8192)); return btoa(s); }
+function download(file) {
+  var url = URL.createObjectURL(file), a = document.createElement('a');
+  a.href = url; a.download = file.name; document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(function () { URL.revokeObjectURL(url); }, 4000);
+}
+function summary(r) {
+  var c = calc(r.items);
+  return 'Censo de carga\nUsuario: ' + r.cliente + '\nContrato: ' + cLabel(r) + '\nDirección: ' + (r.direccion || '-') + '\nFecha: ' + fechaLarga(r.fecha) +
+    '\nConsumo: ' + fmt(c.kwh, 2) + ' kWh/día\nPotencia: ' + fmt(c.kva, 2) + ' kVA\nBreaker principal: ' + (c.brk ? c.brk + ' A' : 'requiere proyecto');
+}
+async function shareNative(file, r) {
+  var fs = plug('Filesystem'), sh = plug('Share');
+  if (!fs || !sh) return false;
+  var bytes = new Uint8Array(await file.arrayBuffer());
+  var saved = await fs.writeFile({ path: file.name, data: b64(bytes), directory: 'CACHE' });
+  await sh.share({ title: shareTitle(r), text: summary(r), url: saved.uri, dialogTitle: 'Enviar reporte' });
+  return true;
+}
+async function sharePdf(r) {
+  var file = pdfFile(r);
+  try {
+    if (isNative && await shareNative(file, r)) return;
+    if (navigator.canShare && navigator.canShare({ files: [file] })) {
+      await navigator.share({ files: [file], title: shareTitle(r), text: summary(r) });
+      return;
+    }
+  } catch (e) { if (e && (e.name === 'AbortError' || /cancel/i.test(String(e.message)))) return; }
+  download(file);
+  toast('Este dispositivo no permite compartir archivos desde aquí. Se descargó el PDF: adjúntalo en tu correo o WhatsApp.');
+}
+async function savePdf(r) {
+  if (isNative) { await sharePdf(r); return; }
+  download(pdfFile(r)); toast('PDF generado: ' + pdfName(r));
+}
+async function printPdf(r) {
+  if (isNative) { toast('Elige Imprimir o Guardar en el menú que se abre.'); await sharePdf(r); return; }
+  var url = URL.createObjectURL(pdfFile(r)), f = document.createElement('iframe');
+  f.style.cssText = 'position:fixed;right:0;bottom:0;width:0;height:0;border:0';
+  f.onload = function () { try { f.contentWindow.focus(); f.contentWindow.print(); } catch (e) { window.open(url, '_blank'); } };
+  f.src = url; document.body.appendChild(f);
+  setTimeout(function () { f.remove(); URL.revokeObjectURL(url); }, 120000);
+}
+var repById = function (id) { return reports.filter(function (x) { return x.id === id; })[0]; };
+
+/* ---------- eventos ---------- */
+var app = $('#app');
+app.addEventListener('input', function (e) {
+  var t = e.target;
+  if (t.dataset.draft) {
+    var k = t.dataset.draft;
+    if (k === 'contrato') {
+      var pos = t.selectionStart, v = t.value.toUpperCase().replace(/[^0-9K]/g, '').slice(0, 13);
+      if (v !== t.value) { t.value = v; try { t.setSelectionRange(pos, pos); } catch (_) {} }
+      t.classList.remove('bad');
+    }
+    draft[k] = t.value; saveDraft();
+  } else if (t.dataset.item) {
+    var card = t.closest('[data-id]'), it = draft.items.filter(function (x) { return x.id === card.dataset.id; })[0];
+    if (it) { it[t.dataset.item] = t.value; saveDraft(); updateCalc(); }
+  } else if (t.dataset.nf) { S.nf[t.dataset.nf] = t.value; }
+});
+
+app.addEventListener('click', function (e) {
+  if (e.target.matches('.ov') && e.target.dataset.act === 'closepicker') { S.picker = false; render(true); return; }
+  var b = e.target.closest('[data-act]'); if (!b) return;
+  var act = b.dataset.act, id = b.dataset.id;
+  if (b.closest('.sheet') && act === 'closepicker' && !b.matches('button')) return;
+
+  if (act === 'tab') { S.tab = b.dataset.t; render(); }
+  else if (act === 'picker') { S.picker = true; render(true); }
+  else if (act === 'closepicker') { S.picker = false; render(true); }
+  else if (act === 'pick') {
+    var l = lib.filter(function (x) { return x.id === id; })[0]; if (!l) return;
+    draft.items.push({ id: uid(), eq: l.name, w: l.w, v: l.v, fp: l.fp, qty: '1', time: '1', unit: 'h' }); saveDraft();
+    S.picker = false; render(true); view.scrollTop = view.scrollHeight; toast(l.name + ' agregado al censo.');
+  }
+  else if (act === 'rm') { var cid = b.closest('[data-id]').dataset.id; draft.items = draft.items.filter(function (x) { return x.id !== cid; }); saveDraft(); render(true); }
+  else if (act === 'unit') { var c2 = b.closest('[data-id]').dataset.id; draft.items.forEach(function (x) { if (x.id === c2) x.unit = b.dataset.u; }); saveDraft(); render(true); }
+  else if (act === 'newcenso') {
+    if ((draft.items.length || draft.cliente || draft.contrato || draft.direccion) && !S.editId && S.tab === 'censo' && !confirm('¿Descartar el censo actual?')) return;
+    draft = { cliente: '', contrato: '', direccion: '', items: [] }; S.editId = null; saveDraft(); S.tab = 'censo'; render();
+  }
+  else if (act === 'save') saveCenso();
+  else if (act === 'nfv') { S.nf.v = +b.dataset.v; render(true); }
+  else if (act === 'addlib') addLib();
+  else if (act === 'rmlib') { lib = lib.filter(function (x) { return x.id !== id; }); saveLib(); render(true); }
+  else if (act === 'pdf') { var r1 = repById(id); if (r1) savePdf(r1); }
+  else if (act === 'print') { var r2 = repById(id); if (r2) printPdf(r2); }
+  else if (act === 'send') { var r3 = repById(id); if (r3) sharePdf(r3); }
+  else if (act === 'open') { S.viewId = id; S.tab = 'resultado'; render(); }
+  else if (act === 'edit') {
+    var r4 = repById(id); if (!r4) return;
+    draft = { cliente: r4.cliente, contrato: r4.contrato, direccion: r4.direccion, items: clone(r4.items) }; saveDraft(); S.editId = id; S.tab = 'censo'; render();
+  }
+  else if (act === 'delrep') {
+    if (!confirm('¿Eliminar este reporte?')) return;
+    reports = reports.filter(function (x) { return x.id !== id; }); saveReports();
+    if (S.viewId === id) S.viewId = reports.length ? reports[0].id : null;
+    render(true);
+  }
+});
+
+function saveCenso() {
+  var err = $('#save-err'), msg = '';
+  var valid = draft.items.filter(function (x) { return num(x.qty) > 0; });
+  if (!draft.cliente.trim()) msg = 'Escribe el nombre del usuario.';
+  else if (draft.contrato && !okContrato(draft.contrato)) { msg = 'El contrato no tiene un formato válido: 10000 + 7 dígitos, o K000 + 9 dígitos. Corrígelo o déjalo en blanco.'; $('#f-contrato').classList.add('bad'); }
+  else if (!valid.length) msg = 'Agrega al menos un equipo con cantidad mayor a 0.';
+  if (msg) { err.textContent = msg; err.hidden = false; err.scrollIntoView({ block: 'center', behavior: 'smooth' }); return; }
+  var rep = { id: S.editId || uid(), cliente: draft.cliente.trim(), contrato: draft.contrato, direccion: draft.direccion.trim(), fecha: new Date().toISOString(), items: clone(valid) };
+  if (S.editId) reports = reports.map(function (x) { return x.id === S.editId ? rep : x; }); else reports.unshift(rep);
+  saveReports();
+  S.viewId = rep.id; S.editId = null;
+  draft = { cliente: '', contrato: '', direccion: '', items: [] }; saveDraft();
+  S.tab = 'resultado'; render(); toast('Censo guardado en Reportes.');
+}
+function addLib() {
+  var nf = S.nf, name = nf.name.trim(), w = num(nf.w), fp = num(nf.fp);
+  if (!name || w <= 0 || fp <= 0 || fp > 1) { toast('Escribe el nombre, los watts y un factor de potencia entre 0.01 y 1.'); return; }
+  var dup = lib.some(function (e) { return e.name.toLowerCase() === name.toLowerCase() && e.w === w && e.v === nf.v && e.fp === fp; });
+  if (dup) { toast('Esa variante ya existe en la biblioteca.'); return; }
+  var ex = lib.filter(function (e) { return e.name.toLowerCase() === name.toLowerCase(); })[0];
+  lib.push({ id: uid(), name: ex ? ex.name : name, w: w, v: nf.v, fp: fp }); saveLib();
+  S.nf.name = ''; S.nf.w = ''; render(true); toast(ex ? 'Variante agregada a ' + ex.name + '.' : 'Equipo agregado a la biblioteca.');
+}
+
+/* ---------- botón atrás (Android) y service worker ---------- */
+var appPlug = plug('App');
+if (appPlug && appPlug.addListener) {
+  appPlug.addListener('backButton', function () {
+    if (S.picker) { S.picker = false; render(true); }
+    else if (S.tab !== 'censo') { S.tab = 'censo'; render(); }
+    else if (appPlug.exitApp) appPlug.exitApp();
+  });
+}
+if ('serviceWorker' in navigator && /^https?:$/.test(location.protocol) && !isNative) {
+  window.addEventListener('load', function () { navigator.serviceWorker.register('sw.js').catch(function () {}); });
+}
+
+window.CensoCarga = { calc: calc, buildPdf: buildPdf, okContrato: okContrato };
+render();
+})();
+</script>
+</body>
+</html>
